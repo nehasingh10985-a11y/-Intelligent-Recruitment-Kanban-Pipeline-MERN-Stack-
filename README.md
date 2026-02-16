@@ -32,7 +32,7 @@ A comprehensive Job Portal and Applicant Tracking System (ATS) designed to strea
 
 ```
 bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/nehasingh10985-a11y/-Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-.git
 cd your-repo-name
 ```
 
