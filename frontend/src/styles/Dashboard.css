@@ -1,0 +1,44 @@
+/* Card with Glassmorphism effect */
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    /* Subtle transparency */
+    backdrop-filter: blur(10px);
+    /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(59, 130, 246, 0.5);
+    /* Blue border on hover */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* More professional status badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    /* Modern slightly rounded corners */
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+/* Neon-style status colors */
+.status-hired {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.2);
+}
