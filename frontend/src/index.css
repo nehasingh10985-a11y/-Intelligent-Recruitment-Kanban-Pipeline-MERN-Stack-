@@ -27,3 +27,26 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+}
+
+@keyframes slide-infinite {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-slide-infinite {
+  animation: slide-infinite 1.5s infinite linear;
+}

@@ -1,52 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
+import { API_URL } from "../constants";
 import { motion } from "framer-motion";
 import {
-  FiDownload,
-  FiUser,
-  FiMail,
-  FiPhone,
   FiCheckCircle,
-  FiSun,
-  FiMoon,
   FiLogOut,
+  FiMoon,
+  FiSun,
+  FiFileText,
+  FiChevronRight,
+  FiShield,
 } from "react-icons/fi";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-const themes = {
-  Pending: {
-    color: "#EAB308",
-    bg: "bg-yellow-500/10",
-    text: "text-yellow-500",
-    border: "border-yellow-500/20",
-  },
-  Reviewed: {
-    color: "#3B82F6",
-    bg: "bg-blue-500/10",
-    text: "text-blue-500",
-    border: "border-blue-500/20",
-  },
-  Interview: {
-    color: "#A855F7",
-    bg: "bg-purple-500/10",
-    text: "text-purple-500",
-    border: "border-purple-500/20",
-  },
-  Hired: {
-    color: "#22C55E",
-    bg: "bg-green-500/10",
-    text: "text-green-500",
-    border: "border-green-500/20",
-  },
-  Rejected: {
-    color: "#EF4444",
-    bg: "bg-red-500/10",
-    text: "text-red-500",
-    border: "border-red-500/20",
-  },
-};
 
 const Status = () => {
   const navigate = useNavigate();
@@ -57,16 +22,10 @@ const Status = () => {
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return navigate("/login");
-        const res = await axios.get(`${API_URL}/api/jobs/my-application`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get("/api/jobs/my-application");
         setApplication(res.data);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          handleLogout();
-        }
+      } catch (err) {
+        console.error("Error fetching application:", err);
       } finally {
         setLoading(false);
       }
@@ -74,227 +33,196 @@ const Status = () => {
     fetchApplication();
   }, [navigate]);
 
+  const getResumeUrl = (link) => {
+    if (!link) return "#";
+    return link.startsWith("http") ? link : `${API_URL}/${link}`;
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
 
-  if (loading)
-    return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${isDark ? "bg-[#050505]" : "bg-white"}`}
-      >
-        <div
-          className={`w-12 h-12 border-4 rounded-full animate-spin ${isDark ? "border-zinc-800 border-t-cyan-500" : "border-zinc-200 border-t-black"}`}
-        ></div>
-      </div>
-    );
-
-  if (!application)
-    return (
-      <div
-        className={`min-h-screen flex flex-col items-center justify-center p-6 text-center ${isDark ? "bg-[#050505] text-white" : "bg-zinc-50 text-zinc-900"}`}
-      >
-        <h1 className="text-4xl font-bold mb-2 tracking-tight">
-          No Application Found
-        </h1>
-        <p className="opacity-50 mb-6">
-          You haven't submitted any applications yet.
-        </p>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className={`px-6 py-2 rounded-lg font-medium transition-all ${isDark ? "bg-cyan-500 text-black hover:bg-cyan-400" : "bg-black text-white hover:bg-zinc-800"}`}
-        >
-          Browse Jobs
-        </button>
-      </div>
-    );
-
-  const currentTheme = themes[application.status] || themes.Pending;
-  const steps = ["Applied", "Reviewed", "Interview", "Decision"];
+  const steps = ["Applied", "Review", "Interview", "Decision"];
   const currentStepIdx = [
     "Pending",
     "Reviewed",
     "Interview",
     "Hired",
     "Rejected",
-  ].indexOf(application.status);
+  ].indexOf(application?.status);
+
+  // --- LOADING / REDIRECTING UI ---
+  if (loading)
+    return (
+      <div
+        className={`h-screen flex flex-col items-center justify-center ${isDark ? "bg-[#0A0A0A]" : "bg-white"}`}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-600/20">
+            <FiShield className="text-white text-3xl animate-pulse" />
+          </div>
+          <div className="text-center">
+            <h2
+              className={`text-sm font-bold tracking-[0.2em] uppercase ${isDark ? "text-white" : "text-black"}`}
+            >
+              Verifying_Session
+            </h2>
+            <p className="text-[10px] opacity-40 mt-2 font-mono">
+              ESTABLISHING SECURE CONNECTION...
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-500 font-sans p-4 lg:p-12 ${isDark ? "bg-[#080808] text-zinc-100" : "bg-[#fafafa] text-zinc-900"}`}
+      className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] text-white" : "bg-[#F8F9FA] text-zinc-900"}`}
     >
-      {/* --- TOP BAR (Logout & Theme Toggle) --- */}
-      <div className="max-w-5xl mx-auto flex justify-end items-center gap-6 mb-12">
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all ${isDark ? "text-zinc-500 hover:text-red-400" : "text-zinc-400 hover:text-red-600"}`}
-        >
-          <FiLogOut size={16} /> Logout
-        </button>
-
-        {/* 🌗 THEME TOGGLE SWITCH */}
-        <div
-          onClick={() => setIsDark(!isDark)}
-          className={`relative w-14 h-8 flex items-center px-1 rounded-full cursor-pointer transition-colors ${isDark ? "bg-zinc-800" : "bg-zinc-200"}`}
-        >
-          <motion.div
-            layout
-            className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${isDark ? "bg-black text-blue-400" : "bg-white text-yellow-500"}`}
-            animate={{ x: isDark ? 24 : 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          >
-            {isDark ? <FiMoon size={14} /> : <FiSun size={14} />}
-          </motion.div>
+      {/* --- NAVBAR --- */}
+      <nav
+        className={`border-b ${isDark ? "border-white/5 bg-black/20" : "border-zinc-200 bg-white"} px-6 md:px-12 h-20 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold italic">
+            V
+          </div>
+          <span className="font-black text-lg tracking-tighter uppercase italic">
+            Veridia
+          </span>
         </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* --- LEFT: Profile Section --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-1 space-y-6"
-        >
-          <div
-            className={`p-6 rounded-2xl border transition-all ${isDark ? "bg-zinc-900/40 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"}`}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsDark(!isDark)}
+            className="p-2 hover:bg-zinc-500/10 rounded-lg"
           >
+            {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-xs font-bold uppercase tracking-widest text-rose-500 px-4 py-2 hover:bg-rose-500/5 rounded-xl transition-all"
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
+
+      <main className="max-w-5xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* --- LEFT: USER CARD --- */}
+          <div className="lg:col-span-4">
             <div
-              className={`w-14 h-14 rounded-xl ${currentTheme.bg} flex items-center justify-center mb-4`}
+              className={`p-8 rounded-[2.5rem] border ${isDark ? "bg-zinc-900/30 border-white/5" : "bg-white border-zinc-200 shadow-xl shadow-zinc-200/50"}`}
             >
-              <FiUser className={`text-xl ${currentTheme.text}`} />
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight mb-1">
-              {application.fullName}
-            </h2>
-            <p className="opacity-50 text-sm mb-4">
-              Applicant ID: {application._id.slice(-6).toUpperCase()}
-            </p>
-            <div
-              className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${currentTheme.bg} ${currentTheme.text} border ${currentTheme.border}`}
-            >
-              {application.status}
-            </div>
-          </div>
-
-          <div
-            className={`p-6 rounded-2xl border transition-all ${isDark ? "bg-zinc-900/40 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"} space-y-4`}
-          >
-            <h4 className="text-[10px] font-bold opacity-40 uppercase tracking-[0.2em]">
-              Data Points
-            </h4>
-            <div className="flex items-center gap-3 text-sm">
-              <FiMail className="opacity-40" /> <span>{application.email}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <FiPhone className="opacity-40" />{" "}
-              <span>{application.phone}</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* --- RIGHT: Timeline --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="lg:col-span-2 space-y-6"
-        >
-          <div
-            className={`p-8 rounded-2xl border transition-all ${isDark ? "bg-zinc-900/40 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"}`}
-          >
-            <h4 className="text-[10px] font-bold opacity-40 uppercase tracking-[0.2em] mb-10">
-              Recruitment Pipeline
-            </h4>
-            <div className="relative flex justify-between">
-              <div
-                className={`absolute top-5 left-0 w-full h-[2px] ${isDark ? "bg-zinc-800" : "bg-zinc-100"}`}
-              ></div>
-              {steps.map((step, idx) => {
-                const active = idx <= currentStepIdx;
-                return (
-                  <div
-                    key={step}
-                    className="relative z-10 flex flex-col items-center gap-3"
-                  >
-                    <motion.div
-                      initial={false}
-                      animate={{
-                        scale: active ? 1 : 0.8,
-                        backgroundColor: active
-                          ? isDark
-                            ? "#06b6d4"
-                            : "#000000"
-                          : isDark
-                            ? "#18181b"
-                            : "#ffffff",
-                      }}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${active ? "border-transparent text-white" : "border-zinc-800 text-zinc-500"}`}
-                    >
-                      {active ? (
-                        <FiCheckCircle size={18} />
-                      ) : (
-                        <span className="text-xs">{idx + 1}</span>
-                      )}
-                    </motion.div>
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-tighter ${active ? (isDark ? "text-cyan-400" : "text-black") : "opacity-30"}`}
-                    >
-                      {step}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div
-            className={`p-6 rounded-2xl border flex items-center justify-between transition-all ${isDark ? "bg-zinc-900/40 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"}`}
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className={`p-3 rounded-lg ${isDark ? "bg-zinc-800" : "bg-zinc-100"}`}
-              >
-                <FiDownload />
+              <div className="w-12 h-12 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6">
+                <FiCheckCircle size={24} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold">Resume_Final.pdf</h3>
-                <p className="text-xs opacity-40 text-zinc-400">
-                  Verified document
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2">
+                Application Tracking
+              </p>
+              <h1 className="text-3xl font-black tracking-tighter uppercase italic mb-6 leading-tight">
+                Welcome back, <br />
+                {application?.fullName?.split(" ")[0] || "Candidate"}
+              </h1>
+              <div className="space-y-4 pt-6 border-t border-zinc-800/50">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="opacity-40 font-bold uppercase">Status</span>
+                  <span className="text-blue-500 font-black uppercase italic tracking-widest">
+                    {application.status}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="opacity-40 font-bold uppercase">Ref No</span>
+                  <span className="font-mono opacity-80">
+                    {application._id.slice(-6).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* --- RIGHT: TRACKER --- */}
+          <div className="lg:col-span-8">
+            <div
+              className={`p-10 rounded-[2.5rem] border ${isDark ? "bg-zinc-900/30 border-white/5" : "bg-white border-zinc-200 shadow-xl shadow-zinc-200/50"}`}
+            >
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 mb-12">
+                Recruitment Pipeline
+              </h3>
+
+              <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative">
+                {/* Horizontal Line (Desktop) */}
+                <div
+                  className={`hidden md:block absolute top-5 left-0 w-full h-[2px] ${isDark ? "bg-white/5" : "bg-zinc-100"}`}
+                />
+
+                {steps.map((step, idx) => {
+                  const active = idx <= currentStepIdx;
+                  const isCurrent = idx === currentStepIdx;
+                  return (
+                    <div
+                      key={step}
+                      className="relative z-10 flex flex-col items-center gap-4 flex-1"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                        ${
+                          isCurrent
+                            ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30"
+                            : active
+                              ? "border-blue-600 text-blue-600"
+                              : isDark
+                                ? "bg-zinc-900 border-zinc-800 text-zinc-700"
+                                : "bg-white border-zinc-100 text-zinc-300"
+                        }`}
+                      >
+                        <FiCheckCircle size={18} strokeWidth={active ? 3 : 2} />
+                      </div>
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-widest ${active ? "opacity-100" : "opacity-20"}`}
+                      >
+                        {step}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div
+                className={`mt-16 p-6 rounded-3xl border border-blue-500/10 bg-blue-500/5`}
+              >
+                <p className="text-xs leading-relaxed font-medium opacity-70">
+                  {application.status === "Pending"
+                    ? "We have successfully received your application. Our team is currently reviewing your profile to match it with our requirements."
+                    : "Your profile has moved to the next stage. Please stay tuned for further instructions via email."}
                 </p>
               </div>
             </div>
-            {application.resumeLink && (
-              <a
-                href={`${API_URL}/uploads/${application.resumeLink.split(/[/\\]/).pop()}`}
-                target="_blank"
-                rel="noreferrer"
-                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${isDark ? "bg-white text-black hover:bg-zinc-200" : "bg-black text-white hover:bg-zinc-800"}`}
-              >
-                VIEW
-              </a>
-            )}
-          </div>
 
-          <motion.div
-            layout
-            className={`p-5 rounded-2xl border flex gap-4 ${currentTheme.bg} ${currentTheme.border}`}
-          >
-            <div
-              className={`mt-1 h-2 w-2 rounded-full animate-pulse ${currentTheme.bg.replace("/10", "")}`}
-            ></div>
-            <p
-              className={`text-xs leading-relaxed font-medium ${currentTheme.text}`}
+            {/* Resume Button */}
+            <a
+              href={getResumeUrl(application.resumeLink)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`mt-6 flex items-center justify-between p-6 rounded-3xl border transition-all 
+              ${isDark ? "bg-white text-black hover:bg-zinc-200" : "bg-zinc-900 text-white hover:bg-black"}`}
             >
-              SYSTEM NOTIFICATION: Your profile is currently tagged as{" "}
-              <b>{application.status}</b>. Our technical leads are analyzing
-              your performance metrics. Stay tuned to your registered email for
-              direct comms.
-            </p>
-          </motion.div>
-        </motion.div>
-      </div>
+              <div className="flex items-center gap-4">
+                <FiFileText size={20} />
+                <span className="text-xs font-black uppercase tracking-widest">
+                  View Submitted Dossier
+                </span>
+              </div>
+              <FiChevronRight size={20} />
+            </a>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

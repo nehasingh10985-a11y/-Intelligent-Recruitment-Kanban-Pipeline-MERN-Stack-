@@ -33,25 +33,53 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data being sent:", formData); // 👈 Isse console mein check karein
-
     setStatus("loading");
+
     try {
+      // Step 1: Login Request
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
+      const { token, user } = res.data;
 
-      // Store token and user in localStorage
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      // Credentials save karein
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      // Redirect to dashboard with a slight delay for smooth transition
-      setTimeout(() => navigate("/dashboard"), 500);
+      // --- 🛡️ ADMIN vs USER REDIRECTION LOGIC ---
+      if (user.role === "admin") {
+        // ✅ Agar Admin hai toh seedha Admin Dashboard par bhejein
+        setTimeout(() => navigate("/dashboard"), 500);
+      } else {
+        // ✅ Agar normal User hai toh Application Check karein
+        try {
+          const appRes = await axios.get(`${API_URL}/api/jobs/my-application`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (appRes.data && appRes.data._id) {
+            // Form bhara hua hai -> Status Page
+            setTimeout(() => navigate("/status"), 500);
+          } else {
+            // Form nahi bhara -> Application Form
+            setTimeout(
+              () =>
+                navigate("/apply", { state: { info: "incomplete_dossier" } }),
+              500,
+            );
+          }
+        } catch (err) {
+          // Application nahi mili (404) -> Application Form
+          setTimeout(
+            () => navigate("/apply", { state: { info: "incomplete_dossier" } }),
+            500,
+          );
+        }
+      }
     } catch (err) {
-      console.error("The EXACT Error from Backend:", err.response?.data); // 👈 Ye exact wajah batayega
+      console.error("Login Error:", err.response?.data);
       setStatus("error");
-      setErrorMsg(err.response?.data?.msg || "Login Error");
+      setErrorMsg(err.response?.data?.msg || "Authentication Failed");
     }
   };
-
   return (
     <div
       className={`min-h-screen flex items-center justify-center relative overflow-hidden font-sans selection:bg-blue-500/30 transition-colors duration-500 
