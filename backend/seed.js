@@ -23,14 +23,11 @@ const seedAdmin = async () => {
     if (adminExists) {
       console.log("✅ Admin already exists. No action needed.");
     } else {
-      // 3. Create New Admin
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("admin123", salt); // Stronger default password
-
+      // 3. Create New Admin - Let Mongoose middleware handle hashing
       const adminUser = new User({
         name: "Super Admin",
         email: "admin@veridia.com",
-        password: hashedPassword,
+        password: "admin123", // Mongoose will hash this
         role: "admin",
       });
 

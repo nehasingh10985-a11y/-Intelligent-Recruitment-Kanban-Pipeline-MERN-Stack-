@@ -4,25 +4,50 @@ const connectDB = require("./config/db");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
 // 1. Database Connection
 connectDB();
 
-// 2. Base Middlewares
+// 2. Security Middlewares
+// Helmet for security headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+
+// Rate limiting to prevent brute force attacks
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { msg: "Too many requests, please try again later." },
+});
+app.use("/api", limiter);
+
+// 3. Base Middlewares
 // Body parser for JSON
 app.use(express.json());
 
-// CORS configuration
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token", "Accept"],
-  }),
-);
+// CORS configuration - Allow multiple ports for development
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    // Also allow localhost on ports 5173 and 5174
+    if (!origin || origin.match(/^http:\/\/localhost:(5173|5174)$/)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-auth-token", "Accept"],
+};
+app.use(cors(corsOptions));
 
 // 3. DEBUG MIDDLEWARE
 app.use((req, res, next) => {

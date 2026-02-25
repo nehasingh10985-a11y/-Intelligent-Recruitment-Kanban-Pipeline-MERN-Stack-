@@ -3,12 +3,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 
-// Helper function to generate Token (Code Repeat kam karne ke liye)
+// JWT Secret with fallback
+const JWT_SECRET =
+  process.env.JWT_SECRET || "fallback_secret_change_in_production";
+
+// Helper function to generate Token
 const generateToken = (user) => {
   const payload = {
     user: { id: user.id, role: user.role, name: user.name },
   };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "5d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "5d" });
 };
 
 // @desc    Register a user
@@ -24,20 +28,17 @@ exports.register = async (req, res) => {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: "User already exists" });
 
-    // 2. Hash Password (Mongoose Middleware use karna zyada clean hota hai, par yahan bhi theek hai)
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // Let Mongoose pre-save middleware handle password hashing
     user = new User({
       name,
       email,
-      password: hashedPassword,
+      password,
       role: role || "candidate",
     });
 
     await user.save();
 
-    // 3. Generate and Return Token
+    // Generate and Return Token
     const token = generateToken(user);
     res
       .status(201)
@@ -58,9 +59,36 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log("🔐 Login Attempt:");
+    console.log("  Email:", email);
+
     const user = await User.findOne({ email });
-    // Error message generic rakhein (security ke liye)
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+
+    if (!user) {
+      console.log("  ❌ User not found");
+      return res.status(400).json({ msg: "Invalid Credentials" });
+    }
+
+    console.log("  👤 User found:", user.email);
+    console.log(
+      "  🔒 Stored password hash:",
+      user.password.substring(0, 20) + "...",
+    );
+
+    // Debug: Check if password is hashed (starts with $2a$, $2b$, etc.)
+    const isPasswordHashed =
+      user.password.startsWith("$2a$") || user.password.startsWith("$2b$");
+    console.log("  ✅ Password is hashed:", isPasswordHashed);
+
+    if (!isPasswordHashed) {
+      console.log("  ❌ ERROR: Password is not hashed! This is a bug.");
+      return res.status(400).json({ msg: "Invalid Credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("  🔑 Password match:", isMatch);
+
+    if (!isMatch) {
       return res.status(400).json({ msg: "Invalid Credentials" });
     }
 
@@ -70,7 +98,7 @@ exports.login = async (req, res) => {
       user: { id: user.id, name: user.name, role: user.role },
     });
   } catch (err) {
-    console.error(err.message);
+    console.error("❌ Login Error:", err.message);
     res.status(500).send("Server error");
   }
 };

@@ -1,3 +1,145 @@
+// Job Model Controller - Handles Job CRUD operations
+const Job = require("../models/Job");
+
+// @desc    Create a new job (Admin only)
+// @route   POST /api/jobs
+// @access  Private (Admin)
+exports.createJob = async (req, res) => {
+  try {
+    const {
+      title,
+      company,
+      location,
+      jobType,
+      salary,
+      description,
+      skillsRequired,
+    } = req.body;
+
+    const job = new Job({
+      adminId: req.user.id,
+      title,
+      company,
+      location,
+      jobType,
+      salary,
+      description,
+      skillsRequired,
+    });
+
+    const createdJob = await job.save();
+    res.status(201).json(createdJob);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// @desc    Get all jobs
+// @route   GET /api/jobs
+// @access  Public
+exports.getAllJobs = async (req, res) => {
+  try {
+    const { search, jobType, location } = req.query;
+    let query = {};
+
+    // Search by title or company
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by job type
+    if (jobType && jobType !== "All") {
+      query.jobType = jobType;
+    }
+
+    // Filter by location
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+
+    const jobs = await Job.find(query).sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// @desc    Get single job
+// @route   GET /api/jobs/:id
+// @access  Public
+exports.getJobById = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ msg: "Job not found" });
+    }
+    res.json(job);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "Job not found" });
+    }
+    res.status(500).send("Server Error");
+  }
+};
+
+// @desc    Update a job
+// @route   PUT /api/jobs/:id
+// @access  Private (Admin)
+exports.updateJob = async (req, res) => {
+  try {
+    let job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ msg: "Job not found" });
+    }
+
+    // Check if user is the job creator (admin)
+    if (job.adminId.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "Not authorized to update this job" });
+    }
+
+    job = await Job.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true },
+    );
+
+    res.json(job);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// @desc    Delete a job
+// @route   DELETE /api/jobs/:id
+// @access  Private (Admin)
+exports.deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ msg: "Job not found" });
+    }
+
+    // Check if user is the job creator (admin)
+    if (job.adminId.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "Not authorized to delete this job" });
+    }
+
+    await job.deleteOne();
+    res.json({ msg: "Job removed" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// Application Controller Functions (re-exported)
 const Application = require("../models/Application");
 const sendEmail = require("../utils/emailService");
 
@@ -25,7 +167,7 @@ exports.getAllApplications = async (req, res) => {
       query.experience = { $regex: experience, $options: "i" };
     }
 
-    const applications = await Application.find(query).sort({ date: -1 });
+    const applications = await Application.find(query).sort({ createdAt: -1 });
     res.json(applications);
   } catch (err) {
     console.error(err.message);
@@ -88,8 +230,7 @@ exports.updateApplicationStatus = async (req, res) => {
   }
 };
 
-// controllers/jobController.js mein ye add karein:
-
+// 5. Delete Application
 exports.deleteApplication = async (req, res) => {
   try {
     const application = await Application.findByIdAndDelete(req.params.id);

@@ -27,7 +27,7 @@ const ApplicationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "Rejected", "Shortlisted"], // Roles fix kar diye
+      enum: ["Pending", "Accepted", "Rejected", "Shortlisted"],
       default: "Pending",
     },
     userId: {
@@ -35,19 +35,13 @@ const ApplicationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // 👈 Yeh 'User' model se link hona chahiye
-      required: true,
-    },
   },
   {
-    // Auto-create createdAt and updatedAt
     timestamps: true,
   },
 );
 
-// Search optimization ke liye indexing (Technical Flex)
+// Search optimization for name and email
 ApplicationSchema.index({ fullName: "text", email: "text" });
 
 module.exports = mongoose.model("Application", ApplicationSchema);
