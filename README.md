@@ -31,15 +31,13 @@ A comprehensive Job Portal and Applicant Tracking System (ATS) designed to strea
 ### 1. Clone the repository
 
 ```
-bash
 git clone https://github.com/nehasingh10985-a11y/-Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-.git
-cd -Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-
+cd "Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-"
 ```
 
 ### 2. Backend Configuration
 
 ```
-bash
 # Navigate to backend directory
 cd backend
 
@@ -61,7 +59,6 @@ npm run dev
 ### 3. Frontend Configuration
 
 ```
-bash
 # Navigate to frontend directory
 cd frontend
 
