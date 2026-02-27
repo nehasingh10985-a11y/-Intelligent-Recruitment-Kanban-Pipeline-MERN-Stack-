@@ -25,6 +25,9 @@ const ApplicationSchema = new mongoose.Schema(
       type: String,
       required: [true, "Resume link is required"],
     },
+    fileId: {
+      type: String,
+    },
     status: {
       type: String,
       enum: ["Pending", "Accepted", "Rejected", "Shortlisted"],

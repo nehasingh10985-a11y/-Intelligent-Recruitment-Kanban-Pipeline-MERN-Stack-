@@ -142,6 +142,7 @@ exports.deleteJob = async (req, res) => {
 // Application Controller Functions (re-exported)
 const Application = require("../models/Application");
 const sendEmail = require("../utils/emailService");
+const imagekit = require("../uploads/storage.service");
 
 // 1. Get All Applications (With Advanced Filtering & Search)
 exports.getAllApplications = async (req, res) => {
@@ -178,15 +179,26 @@ exports.getAllApplications = async (req, res) => {
 // 2. Apply for Job (Optimized)
 exports.applyForJob = async (req, res) => {
   try {
-    // Dynamic Resume Link Logic
-    const resumeLink = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-      : req.body.resumeLink;
+    if (!req.file) {
+      return res.status(400).json({ msg: "Please upload a resume" });
+    }
+
+    // 1. File ko ImageKit par upload karein
+    const uploadResponse = await imagekit.upload({
+      file: req.file.buffer, // Buffer use karein (agar memoryStorage use kar rahe hain)
+      fileName: `resume_${Date.now()}_${req.file.originalname}`,
+      folder: "/resumes",
+    });
 
     // Use findOneAndUpdate to reduce code lines (Atomic Operation)
     const updatedApp = await Application.findOneAndUpdate(
       { userId: req.user.id },
-      { ...req.body, resumeLink, status: "Pending", date: Date.now() },
+      {
+        ...req.body,
+        resumeLink: uploadResponse.url,
+        status: "Pending",
+        date: Date.now(),
+      },
       { new: true, upsert: true }, // upsert: true matlab nahi milega toh naya bana dega
     );
 
@@ -199,8 +211,9 @@ exports.applyForJob = async (req, res) => {
     );
 
     res.json(updatedApp);
-  } catch (err) {
-    res.status(500).send("Server Error");
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ msg: "Cloud upload failed" });
   }
 };
 
