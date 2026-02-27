@@ -77,3 +77,11 @@ npm run build
 - **Route Guarding:** Protected routes ensured by JWT validation.
 - **API Strategy:** Centralized API management using environment variables.
 - **UI/UX:** Responsive design optimized for both Desktop and Mobile users.
+
+## ☁️ Cloud File Integration (ImageKit)
+
+The system is integrated with **ImageKit.io** to handle high-performance file uploads. Instead of saving resumes locally, the application uses a cloud-first approach:
+
+- **Memory Buffering:** Files are processed in-memory using `Multer` and streamed directly to the cloud, reducing server disk usage.
+- **Dynamic Optimization:** Resumes and documents are delivered via ImageKit's global CDN for faster access by recruiters.
+- **Secure Handling:** Private API keys are managed via environment variables to ensure secure cloud communication.
