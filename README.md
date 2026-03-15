@@ -33,7 +33,7 @@ A comprehensive Job Portal and Applicant Tracking System (ATS) designed to strea
 ### 1. Clone & Setup
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/nehasingh10985-a11y/-Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-.git
 cd "Intelligent Recruitment & Kanban Pipeline"
 ```
 
@@ -87,5 +87,6 @@ PORT=5000
 - **Protected Routes**: JWT + role middleware.
 - **File Security**: Strict MIME validation, size limits.
 - **Performance**: Debounced search, optimized fetches, CDN delivery.
+
 
 ```
