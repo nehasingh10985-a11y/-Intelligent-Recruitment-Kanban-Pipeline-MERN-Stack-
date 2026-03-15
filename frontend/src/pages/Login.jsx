@@ -342,12 +342,13 @@ const InputField = ({
           required
           type={inputType}
           name={name}
+          id={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          autoComplete={isPassword ? "current-password" : "off"}
+          autoComplete={isPassword ? "current-password" : "username"}
           className={`w-full text-sm rounded-xl border py-3.5 pl-11 pr-12 outline-none transition-all duration-300
               ${
                 isDarkMode

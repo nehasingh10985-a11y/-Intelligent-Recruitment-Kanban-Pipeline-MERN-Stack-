@@ -11,6 +11,7 @@ import {
   FiFileText,
   FiChevronRight,
   FiShield,
+  FiCheck,
 } from "react-icons/fi";
 
 const Status = () => {
@@ -43,14 +44,29 @@ const Status = () => {
     navigate("/login");
   };
 
-  const steps = ["Applied", "Review", "Interview", "Decision"];
-  const currentStepIdx = [
-    "Pending",
-    "Reviewed",
-    "Interview",
-    "Hired",
-    "Rejected",
-  ].indexOf(application?.status);
+  const steps = [
+    { id: "Pending", label: "Applied", desc: "Dossier received and indexed." },
+    {
+      id: "Reviewed",
+      label: "Under Review",
+      desc: "Human intelligence is evaluating your profile.",
+    },
+    {
+      id: "Interview",
+      label: "Interview",
+      desc: "Strategic session scheduled with the lead.",
+    },
+    {
+      id: "Hired",
+      label: "Hired",
+      desc: "Access granted. Welcome to the collective.",
+    },
+  ];
+
+  // Helper to find the current active step index
+  const currentStepIndex = steps.findIndex((s) => s.id === application?.status);
+  const currentStepIdx =
+    application?.status === "Rejected" ? -1 : currentStepIndex;
 
   // --- LOADING / REDIRECTING UI ---
   if (loading)
@@ -148,6 +164,23 @@ const Status = () => {
 
           {/* --- RIGHT: TRACKER --- */}
           <div className="lg:col-span-8">
+            {/* Rejected State Alert Card */}
+            {application.status === "Rejected" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl mb-10 text-center"
+              >
+                <h3 className="text-red-500 font-black uppercase italic tracking-tighter text-xl">
+                  Dossier_Terminated
+                </h3>
+                <p className="text-xs text-zinc-500 mt-2">
+                  The protocol has concluded. Your profile did not meet the
+                  current operational requirements.
+                </p>
+              </motion.div>
+            )}
+
             <div
               className={`p-10 rounded-[2.5rem] border ${isDark ? "bg-zinc-900/30 border-white/5" : "bg-white border-zinc-200 shadow-xl shadow-zinc-200/50"}`}
             >
@@ -155,42 +188,73 @@ const Status = () => {
                 Recruitment Pipeline
               </h3>
 
-              <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative">
-                {/* Horizontal Line (Desktop) */}
-                <div
-                  className={`hidden md:block absolute top-5 left-0 w-full h-[2px] ${isDark ? "bg-white/5" : "bg-zinc-100"}`}
-                />
+              <div className="py-12 px-4 max-w-4xl mx-auto">
+                <div className="relative flex justify-between items-center">
+                  {/* Background Progress Line */}
+                  <div className="absolute top-5 left-0 w-full h-[2px] bg-zinc-800 z-0" />
 
-                {steps.map((step, idx) => {
-                  const active = idx <= currentStepIdx;
-                  const isCurrent = idx === currentStepIdx;
-                  return (
-                    <div
-                      key={step}
-                      className="relative z-10 flex flex-col items-center gap-4 flex-1"
-                    >
+                  {/* Animated Active Progress Line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{
+                      width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
+                    }}
+                    className="absolute top-5 left-0 h-[2px] bg-blue-600 z-0"
+                  />
+
+                  {steps.map((step, idx) => {
+                    const isCompleted = idx < currentStepIndex;
+                    const isActive = idx === currentStepIndex;
+                    const isRejected =
+                      application.status === "Rejected" && idx === 1;
+
+                    return (
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                        ${
-                          isCurrent
-                            ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30"
-                            : active
-                              ? "border-blue-600 text-blue-600"
-                              : isDark
-                                ? "bg-zinc-900 border-zinc-800 text-zinc-700"
-                                : "bg-white border-zinc-100 text-zinc-300"
-                        }`}
+                        key={step.id}
+                        className="relative z-10 flex flex-col items-center group"
                       >
-                        <FiCheckCircle size={18} strokeWidth={active ? 3 : 2} />
+                        {/* Circle Indicator */}
+                        <motion.div
+                          initial={{ scale: 0.8 }}
+                          animate={{
+                            scale: isActive ? 1.2 : 1,
+                            backgroundColor:
+                              isCompleted || isActive ? "#2563eb" : "#18181b",
+                            borderColor:
+                              isCompleted || isActive ? "#3b82f6" : "#27272a",
+                          }}
+                          className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-500
+                            ${isActive ? "shadow-[0_0_20px_rgba(37,99,235,0.4)]" : ""}
+                          `}
+                        >
+                          {isCompleted ? (
+                            <FiCheck className="text-white text-sm" />
+                          ) : (
+                            <span
+                              className={`text-[10px] font-bold ${isActive ? "text-white" : "text-zinc-600"}`}
+                            >
+                              0{idx + 1}
+                            </span>
+                          )}
+                        </motion.div>
+
+                        {/* Label & Description */}
+                        <div className="mt-4 text-center">
+                          <h4
+                            className={`text-[10px] font-black uppercase tracking-widest mb-1
+                            ${isActive ? "text-blue-500" : isCompleted ? "text-white" : "text-zinc-600"}
+                          `}
+                          >
+                            {step.label}
+                          </h4>
+                          <p className="hidden md:block text-[8px] font-mono opacity-40 uppercase max-w-[100px] leading-tight">
+                            {isActive ? step.desc : ""}
+                          </p>
+                        </div>
                       </div>
-                      <span
-                        className={`text-[10px] font-black uppercase tracking-widest ${active ? "opacity-100" : "opacity-20"}`}
-                      >
-                        {step}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
               <div

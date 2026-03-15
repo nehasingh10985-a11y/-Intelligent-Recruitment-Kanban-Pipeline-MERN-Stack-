@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import api from "../../api";
 import { API_URL } from "../../constants";
 import {
@@ -51,6 +52,11 @@ const CandidateView = ({ darkMode }) => {
         );
       case "Rejected":
         return base + "bg-rose-500/10 text-rose-500 border-rose-500/20";
+      case "Interview":
+        return (
+          base +
+          "bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+        );
       default:
         return (
           base +
@@ -136,7 +142,14 @@ const CandidateView = ({ darkMode }) => {
                     </p>
                   </div>
                 </div>
-                <span className={getStatusStyle(c.status)}>{c.status}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={getStatusStyle(c.status)}>{c.status}</span>
+                  {c.status === "Interview" && c.interviewDate && (
+                    <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter">
+                      {new Date(c.interviewDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div
@@ -223,7 +236,24 @@ const CandidateView = ({ darkMode }) => {
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <span className={getStatusStyle(c.status)}>{c.status}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={getStatusStyle(c.status)}>
+                        {c.status}
+                      </span>
+                      {c.status === "Interview" && (
+                        <motion.div
+                          animate={{ opacity: [0.4, 1, 0.4] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                          className="w-1.5 h-1.5 rounded-full bg-amber-500"
+                        />
+                      )}
+                    </div>
+                    {c.status === "Interview" && c.interviewDate && (
+                      <span className="text-[9px] font-mono opacity-40 uppercase tracking-tighter block mt-1">
+                        Scheduled:{" "}
+                        {new Date(c.interviewDate).toLocaleDateString()}
+                      </span>
+                    )}
                   </td>
                   <td className="px-8 py-5 text-right">
                     <a

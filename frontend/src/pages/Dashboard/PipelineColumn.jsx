@@ -17,7 +17,7 @@ const PipelineColumn = ({ id, apps, darkMode, onDelete }) => {
     >
       <div
         className={`p-4 border-b-2 flex justify-between items-center rounded-t-[2rem]
-        ${id === "Hired" ? "border-emerald-500/30" : id === "Rejected" ? "border-rose-500/30" : "border-blue-500/30"}`}
+        ${id === "Hired" ? "border-emerald-500/30" : id === "Rejected" ? "border-rose-500/30" : id === "Interview" ? "border-purple-500/30" : "border-blue-500/30"}`}
       >
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
           {id}

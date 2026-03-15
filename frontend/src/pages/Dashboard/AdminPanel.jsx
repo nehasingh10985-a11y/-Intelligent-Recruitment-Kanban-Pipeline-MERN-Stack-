@@ -3,17 +3,21 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import api from "../../api";
 import StatCard from "./StatCard";
 import PipelineColumn from "./PipelineColumn";
+import InterviewModal from "./InterviewModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 const AdminPanel = ({ darkMode }) => {
   const [columns, setColumns] = useState({
     Pending: [],
     Reviewed: [],
+    Interview: [],
     Hired: [],
     Rejected: [],
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const fetchApplications = async () => {
     try {
@@ -22,6 +26,7 @@ const AdminPanel = ({ darkMode }) => {
       setColumns({
         Pending: apps.filter((app) => app.status === "Pending"),
         Reviewed: apps.filter((app) => app.status === "Reviewed"),
+        Interview: apps.filter((app) => app.status === "Interview"),
         Hired: apps.filter((app) => app.status === "Hired"),
         Rejected: apps.filter((app) => app.status === "Rejected"),
       });
@@ -64,6 +69,24 @@ const AdminPanel = ({ darkMode }) => {
     )
       return;
 
+    // Check if dropped into Interview column from another column
+    if (
+      destination.droppableId === "Interview" &&
+      source.droppableId !== "Interview"
+    ) {
+      // Find the candidate being moved
+      const candidate = Object.values(columns)
+        .flat()
+        .find((c) => c._id === draggableId);
+
+      if (candidate) {
+        // Store candidate and open modal
+        setSelectedCandidate(candidate);
+        setShowScheduler(true);
+      }
+      return;
+    }
+
     const startCol = [...columns[source.droppableId]];
     const endCol = [...columns[destination.droppableId]];
     const [movedItem] = startCol.splice(source.index, 1);
@@ -82,6 +105,29 @@ const AdminPanel = ({ darkMode }) => {
       });
     } catch (err) {
       fetchApplications();
+    }
+  };
+
+  // Handle interview scheduling from modal
+  const handleScheduleInterview = async (scheduleData) => {
+    if (!selectedCandidate) return;
+
+    try {
+      await api.put(`/api/jobs/schedule-interview/${selectedCandidate._id}`, {
+        interviewDate: scheduleData.date,
+        interviewTime: scheduleData.time,
+        meetingLink: scheduleData.link,
+      });
+
+      // Refresh the applications
+      await fetchApplications();
+
+      // Close modal and reset state
+      setShowScheduler(false);
+      setSelectedCandidate(null);
+    } catch (err) {
+      console.error("Schedule interview error:", err);
+      alert("Failed to schedule interview. Please try again.");
     }
   };
 
@@ -157,7 +203,7 @@ const AdminPanel = ({ darkMode }) => {
         <DragDropContext onDragEnd={onDragEnd}>
           <motion.div
             layout
-            className="flex lg:grid lg:grid-cols-4 gap-4 min-w-max lg:min-w-full"
+            className="flex lg:grid lg:grid-cols-5 gap-4 min-w-max lg:min-w-full"
           >
             <AnimatePresence mode="popLayout">
               {Object.keys(filteredColumns).map((id) => (
@@ -182,6 +228,18 @@ const AdminPanel = ({ darkMode }) => {
           </motion.div>
         </DragDropContext>
       </div>
+
+      {/* Interview Scheduler Modal */}
+      {showScheduler && selectedCandidate && (
+        <InterviewModal
+          candidate={selectedCandidate}
+          onClose={() => {
+            setShowScheduler(false);
+            setSelectedCandidate(null);
+          }}
+          onSchedule={handleScheduleInterview}
+        />
+      )}
     </motion.div>
   );
 };
