@@ -30,13 +30,26 @@ const ApplicationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "Rejected", "Shortlisted"],
+      enum: ["Pending", "Reviewed", "Interview", "Hired", "Rejected"],
       default: "Pending",
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    // Interview scheduling fields
+    interviewDate: {
+      type: String,
+    },
+    interviewTime: {
+      type: String,
+    },
+    meetingLink: {
+      type: String,
+    },
+    scheduledAt: {
+      type: Date,
     },
   },
   {

@@ -19,6 +19,7 @@ const {
   getAllApplications,
   getMyApplication,
   updateApplicationStatus,
+  scheduleInterview,
   deleteApplication,
 } = require("../controllers/jobController");
 
@@ -45,6 +46,14 @@ router.put(
   auth,
   roleMiddleware("admin"),
   updateApplicationStatus,
+);
+
+// Schedule Interview (Admin only - Opens modal when dropped to Interview column)
+router.put(
+  "/schedule-interview/:id",
+  auth,
+  roleMiddleware("admin"),
+  scheduleInterview,
 );
 
 // Delete Application (Admin only)

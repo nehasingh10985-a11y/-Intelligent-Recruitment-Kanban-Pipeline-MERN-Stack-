@@ -243,6 +243,48 @@ exports.updateApplicationStatus = async (req, res) => {
   }
 };
 
+// 5. Schedule Interview (For Interview Modal)
+exports.scheduleInterview = async (req, res) => {
+  try {
+    const { interviewDate, interviewTime, meetingLink } = req.body;
+
+    const application = await Application.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Interview",
+        interviewDate,
+        interviewTime,
+        meetingLink: meetingLink || "",
+        scheduledAt: new Date(),
+      },
+      { new: true },
+    );
+
+    if (!application)
+      return res.status(404).json({ msg: "Application not found" });
+
+    // Send email notification to candidate
+    const subject = "Interview Scheduled - Veridia";
+    const message = `<div style="font-family: sans-serif;">
+      <h2>Hi ${application.fullName},</h2>
+      <p>Your interview has been scheduled.</p>
+      <p><strong>Date:</strong> ${interviewDate}</p>
+      <p><strong>Time:</strong> ${interviewTime}</p>
+      ${meetingLink ? `<p><strong>Meeting Link:</strong> ${meetingLink}</p>` : ""}
+      <p>Best regards,<br/>Veridia Team</p>
+    </div>`;
+
+    sendEmail(application.email, subject, "", message).catch((err) =>
+      console.error("Email failed:", err.message),
+    );
+
+    res.json(application);
+  } catch (err) {
+    console.error("Schedule Interview Error:", err);
+    res.status(500).send("Server Error");
+  }
+};
+
 // 5. Delete Application
 exports.deleteApplication = async (req, res) => {
   try {
