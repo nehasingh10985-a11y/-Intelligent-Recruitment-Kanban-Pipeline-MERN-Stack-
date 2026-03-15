@@ -88,16 +88,4 @@ PORT=5000
 - **File Security**: Strict MIME validation, size limits.
 - **Performance**: Debounced search, optimized fetches, CDN delivery.
 
-## 📚 Seeding Data
-
-Run `npm run seed` in backend to populate sample jobs/applications for testing the pipeline.
-
-```
-</xai:function_call >
-
-**Step 2 complete. Updating TODO.md and finalizing.**
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">d:/Projects/Intelligent Recruitment & Kanban Pipeline/TODO.md
 ```
