@@ -5,10 +5,12 @@ A comprehensive Job Portal and Applicant Tracking System (ATS) designed to strea
 ## 🚀 Core Features
 
 - **Role-Based Access Control:** Secure separate dashboards for Admins (Recruiters) and Candidates.
-- **Kanban Recruitment Pipeline:** Interactive Drag-and-Drop system to manage candidate stages (Pending, Reviewed, Interview, Hired).
-- **Real-time Analytics:** Automated calculation of hiring stats, success rates, and pipeline volume.
-- **Smart Resume Hub:** Integrated document previewer with robust path-cleaning logic for cross-OS compatibility.
-- **Debounced Search:** Optimized filtering system to handle high-volume data without performance lag.
+- **Kanban Recruitment Pipeline:** Interactive Drag-and-Drop system to manage candidate stages (Pending, Reviewed, Interview, Hired, Rejected).
+- **Real-time Analytics:** Automated calculation of hiring stats, success rates, and pipeline volume via StatCards.
+- **Smart Resume Hub:** Multer-powered uploads (PDF/DOC/DOCX, 10MB limit) with ImageKit cloud optimization and secure file filtering.
+- **Debounced Search:** Optimized filtering across candidate names in dashboard.
+- **Interview Scheduling:** Modal-based scheduling when dragging candidates to Interview stage (date/time/meeting link).
+- **Enhanced Candidate Forms:** Custom date picker, multi-skill selector, full profile submission with logout integration.
 
 ## 🛠 Tech Stack
 
@@ -22,66 +24,80 @@ A comprehensive Job Portal and Applicant Tracking System (ATS) designed to strea
 ### Backend
 
 - **Node.js & Express.js**
-- **MongoDB Atlas** (Scalable Cloud Database)
+- **MongoDB Atlas** (Scalable Cloud Database with text indexes)
 - **JWT (JSON Web Tokens)** (State-of-the-art authentication)
-- **Multer** (Secure File System management)
+- **Multer + ImageKit** (Secure file uploads and CDN delivery)
 
 ## 📦 Quick Start
 
-### 1. Clone the repository
+### 1. Clone & Setup
 
-```
-git clone https://github.com/nehasingh10985-a11y/-Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-.git
-cd "Intelligent-Recruitment-Kanban-Pipeline-MERN-Stack-"
+```bash
+git clone <your-repo-url>
+cd "Intelligent Recruitment & Kanban Pipeline"
 ```
 
 ### 2. Backend Configuration
 
-```
-# Navigate to backend directory
+```bash
 cd backend
-
-# Install dependencies
 npm install
-
-# Setup environment variables
-# Create a .env file and add:
-# MONGO_URI=your_mongodb_connection_string
-# JWT_SECRET=your_jwt_secret
-
-# Start the server (production)
-npm start
-
-# OR start the server (development with auto-reload)
-npm run dev
+# Copy .env.example to .env and configure
+npm run dev  # Development server
+npm start    # Production
+npm run seed # Populate test data
 ```
 
 ### 3. Frontend Configuration
 
-```
-# Navigate to frontend directory
+```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# Build for production
-npm run build
 ```
+
+## 🔧 Environment Variables (backend/.env)
+
+```
+MONGO_URI=your_mongodb_atlas_uri
+JWT_SECRET=your_super_secret_key
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=your_url_endpoint
+PORT=5000
+```
+
+## 🌐 Key API Endpoints
+
+- `GET /api/jobs/all-applications` - Fetch all applications for dashboard
+- `PUT /api/jobs/update-status/:id` - Update candidate status
+- `DELETE /api/jobs/delete/:id` - Remove candidate
+- `PUT /api/jobs/schedule-interview/:id` - Schedule interview details
+- `POST /api/jobs/apply` - Submit candidate application with resume
+
+## 📈 Recent Updates
+
+- **Admin Dashboard**: Full Kanban with stats, search, drag-drop, interview modals.
+- **Application Model**: Added interview scheduling fields, search indexes.
+- **Upload Middleware**: File type/size validation, memory storage.
+- **FinalForm**: Production-ready form with custom UI components.
 
 ## 🛡 Security & Optimization
 
-- **Route Guarding:** Protected routes ensured by JWT validation.
-- **API Strategy:** Centralized API management using environment variables.
-- **UI/UX:** Responsive design optimized for both Desktop and Mobile users.
+- **Protected Routes**: JWT + role middleware.
+- **File Security**: Strict MIME validation, size limits.
+- **Performance**: Debounced search, optimized fetches, CDN delivery.
 
-## ☁️ Cloud File Integration (ImageKit)
+## 📚 Seeding Data
 
-The system is integrated with **ImageKit.io** to handle high-performance file uploads. Instead of saving resumes locally, the application uses a cloud-first approach:
+Run `npm run seed` in backend to populate sample jobs/applications for testing the pipeline.
 
-- **Memory Buffering:** Files are processed in-memory using `Multer` and streamed directly to the cloud, reducing server disk usage.
-- **Dynamic Optimization:** Resumes and documents are delivered via ImageKit's global CDN for faster access by recruiters.
-- **Secure Handling:** Private API keys are managed via environment variables to ensure secure cloud communication.
+```
+</xai:function_call >
+
+**Step 2 complete. Updating TODO.md and finalizing.**
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">d:/Projects/Intelligent Recruitment & Kanban Pipeline/TODO.md
+```
